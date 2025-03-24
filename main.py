@@ -37,7 +37,13 @@ INTERNAL_DATABASE_NAME = config.get('internal_database_name', 'default_internal_
 DATABASE_IP = config.get('database_ip', '127.0.0.1')
 measurement = config.get('measurement', 'default_measurement')
 
-
+# DATABASE_PORT = '8086'
+# USERNAME_DATABASE = str(open("config/USERNAME_DATABASE.txt", "r").read()).strip()
+# PASSWORD_DATABASE = str(open("config/PASSWORD_DATABASE.txt", "r").read()).strip()
+# INTERNAL_BACKUP_DATABASE_NAME = str(open("config/INTERNAL_BACKUP_DATABASE_NAME.txt", "r").read()).strip()
+# INTERNAL_DATABASE_NAME = str(open("config/INTERNAL_DATABASE_NAME.txt", "r").read()).strip()
+# DATABASE_IP = str(open("config/DATABASE_IP.txt", "r").read()).strip()
+# measurement = str(open("config/measurement.txt", "r").read()).strip()
 def ConvertKSA (packet) :
     hour = packet[46:48]
     print(int(hour, 16))
@@ -51,6 +57,7 @@ def Checked_SavedHolding_Database():
     result = client.query('SELECT *  FROM '+str(INTERNAL_BACKUP_DATABASE_NAME)+'."autogen".'+str(measurement))
     length = len(list(result.get_points()))
     if length != 0 :
+        print("hold data length ", length)
         return True
     else:
         return False
@@ -65,20 +72,11 @@ def Save_IndexNum(index) :
     textfile = open("IndexNum.txt", "w")
     textfile.write(str (index))
     textfile.close()
-def Load_IndexNum():
-    try:
-        text_file = open("IndexNum.txt", "r")
-        lines = text_file.readlines()
-        if lines:
-            Nlist = [i.replace("\n", "").strip() for i in lines]
-            return int(Nlist[0])
-        else:
-            # Handle case where file is empty
-            return 0  # or any default value you prefer
-    except (FileNotFoundError, IndexError, ValueError) as e:
-        # Handle exceptions like file not found, index error, or value error
-        print(f"Error loading index number: {e}")
-        return 0  # or any default value
+def Load_IndexNum () :
+    text_file = open("IndexNum.txt", "r")
+    lines = text_file.readlines()
+    Nlist = [i.replace("\n","").strip() for i in lines ]
+    return int (Nlist[0])
 def Set_IndexNumber () :
     Save_IndexNum(0)
 def SendPacketHoldingDataBase(packet) :
@@ -108,6 +106,7 @@ def SendPacketToServer (packet) :
     packet = ConvertKSA(packet)
     if ServerActive:
         try:
+            print("sending to skarpt server")
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((Serverip, Serverport))
             s.send(binascii.unhexlify(packet))
@@ -131,6 +130,7 @@ def mqttsend (jsonlist,sensoridlist) :
     for i in range(len(jsonlist)):
         client.publish(measurement+"/" + str(sensoridlist[i]), str(jsonlist[i]))
 def Update_ACK (Packetindex) :
+    print("updating ack")
     global  responsePacket,response2
     #str = '@CMD,*000000,@ACK,'+Packetindex+'#,#'
     str1 = '@ACK,'+Packetindex+'#'
@@ -186,13 +186,24 @@ def HumFun ( hum) :
     else:
         return 255
     return str(int(value, 2))
-def ConvertPacketIntoElemets (packet) :
+
+def logic(packet):
+    print("logic thread ...")
     if TestServerConnection() :
-        if Checked_SavedHolding_Database() :
-            threading.Thread(target=Send_Saved_Database, args=[]).start()
+        print("skarpt server is active")
         SendPacketToServer(packet)
+        if Checked_SavedHolding_Database() :
+            print("sending hold data")
+            threading.Thread(target=Send_Saved_Database, args=[]).start()
     else:
         SendPacketHoldingDataBase(packet)
+        
+def ConvertPacketIntoElemets (packet) :
+
+    threading.Thread(target=logic, args=[packet]).start()
+
+    print("convert packet")
+    
     sensorfound = False
     NumberOfSensors = 0
     Sensorhexlist = []
@@ -332,7 +343,6 @@ def preprocess_packet(data):
         full_packet_list.append(data)
 
     return 0
-import asyncore
 
 class EchoHandler(asyncore.dispatcher_with_send):
 
@@ -341,21 +351,17 @@ class EchoHandler(asyncore.dispatcher_with_send):
         if data:
             try:
                 send_list = preprocess_packet(data)
-                print(send_list)
-                if send_list != 0:
-                    for i in send_list:
+                if send_list != 0 :
+                    for i in send_list :
                         self.send(i)
-            except Exception as e:
-                print(f"Error in handle_read: {e}")
+            except :
+                pass
 
-    def handle_close(self):
-        print("Connection closed")
-        self.close()
 
 class EchoServer(asyncore.dispatcher):
 
     def __init__(self, host, port):
-        super().__init__()
+        asyncore.dispatcher.__init__(self)
         self.create_socket()
         self.set_reuse_addr()
         self.bind((host, port))
@@ -365,9 +371,6 @@ class EchoServer(asyncore.dispatcher):
         print('Incoming connection from %s' % repr(addr))
         handler = EchoHandler(sock)
 
-# Run the server
-server = EchoServer('', 2000)
-try:
-    asyncore.loop()
-except KeyboardInterrupt:
-    print("Server interrupted and stopped.")
+
+server = EchoServer('', 3000)
+asyncore.loop()
