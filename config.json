@@ -15,7 +15,7 @@
     "alarm_delay_minutes": 1,
     "cold_room_sensors": "62210229,62240894,06240840",
     "normal_room_sensors": "44443333,66665555,88887777",
-    "phone_numbers": "01140214856,01116072004,01123008561"
+    "phone_numbers": "01140214856,01116072004,01123008561",
   },
     "schema": {
     "mqtt_broker": "str",
