@@ -1,36 +1,30 @@
 {
-  "name": "myalarmHandler",
+  "name": "localaddonbackup",
   "version": "1.0",
   "slug": "localaddonbackup",
-  "description": "Handles alarms and sends SMS via MQTT and HTTP",
+  "description": "localdatabase v2 gateway on local database home assistant",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "application",
   "boot": "auto",
-  "options": {
-    "mqtt_broker": "192.168.1.101",
-    "mqtt_user": "mqtt-user",
-    "mqtt_pass": "Skarpt",
-    "sms_uri": "http://192.168.1.101:3000/api/v1/sms/outbox",
-    "sms_credentials": "apiuser:pleasechangeme",
-    "alarm_delay_minutes": 1,
-    "cold_room_sensors": "62210229,62240894,06240840",
-    "normal_room_sensors": "44443333,66665555,88887777",
-    "phone_numbers": "01140214856,01116072004,01123008561"
-  },
-    "schema": {
-    "mqtt_broker": "str",
-    "mqtt_user": "str",
-    "mqtt_pass": "password",
-    "sms_uri": "str",
-    "sms_credentials": "str",
-    "alarm_delay_minutes": "int",
-    "cold_room_sensors": "str",
-    "normal_room_sensors": "str",
-    "phone_numbers": "str"
+  "options": {"database_port": "8086",
+    "username_database": "!secret username_database",
+    "password_database": "!secret password_database",
+    "internal_backup_database_name": "!secret internal_backup_database_name",
+    "internal_database_name": "!secret internal_database_name",
+    "database_ip": "!secret database_ip",
+    "measurement": "!secret measurement"},
+  "schema": {
+    "database_port": "str",
+    "username_database": "str",
+    "password_database": "str",
+    "internal_backup_database_name": "str",
+    "internal_database_name": "str",
+    "database_ip": "str",
+    "measurement": "str"
   },
   "ports": {
-    "5060/tcp": 5060
-  }
+    "3000/tcp": 2000
+  },
   "map": [
     "ssl:rw",
     "backup:rw"
