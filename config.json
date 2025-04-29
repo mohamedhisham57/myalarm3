@@ -1,5 +1,5 @@
 {
-  "name": "localaddonbackup",
+  "name": "myalarmHandler",
   "version": "1.0",
   "slug": "localaddonbackup",
   "description": "localdatabase v2 gateway on local database home assistant",
