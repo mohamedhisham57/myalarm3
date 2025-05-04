@@ -98,33 +98,29 @@ def send_http_request(credentials, url, method, request_body, timeout):
         return None
 
 def send_sms(message, number):
-    logger.info(f"Attempting to send SMS to {number}")
-    
-    # Validate input parameters
-    if not sms_uri:
-        logger.error("SMS URI is not configured")
-        return
-    
-    if not sms_credentials:
-        logger.error("SMS credentials are not configured")
-        return
+    import base64, requests
+    tp_link_credentials = "apiuser:pleasechangeme"  # <- Hardcoded credentials (should be moved to config)
+    sms_uri = "http://localhost:3000/api/v1/sms/outbox"  # <- SMS API endpoint (local API bridge)
     
     body = {
         "to": number,
         "content": message
     }
-    
+
     try:
-        result = send_http_request(sms_credentials, sms_uri, 'POST', body, 100)
-        
-        if result:
-            logger.info(f"HTTP SMS sent successfully to {number}")
-            logger.debug(f"SMS Send Result: {result}")
-        else:
-            logger.warning(f"Failed to send HTTP SMS to {number}")
+        base64_credentials = base64.b64encode(tp_link_credentials.encode('utf-8')).decode('utf-8')
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Basic {base64_credentials}'
+        }
+
+        response = requests.post(sms_uri, headers=headers, json=body, timeout=10)
+        response.raise_for_status()
+        logger.info(f"SMS sent to {number}")
     except Exception as e:
-        logger.error(f"Exception in send_sms for number {number}: {e}")
-        logger.error(traceback.format_exc())
+        logger.error(f"SMS sending failed: {e}")
+
+    logger.info(f"Sending SMS to {number}: {message}")
 
 def assign_to_memory(TypeOfAlarm, sensorid, Gatewayid, value, alarm_time):
     global last_alarm_sent_time
