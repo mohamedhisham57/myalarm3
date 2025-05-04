@@ -163,9 +163,9 @@ def assign_to_memory(TypeOfAlarm, sensorid, Gatewayid, value, alarm_time):
             logger.info(f"Attempting to send SMS to {num}")
             send_sms(alarm_message, num)
         
-        if sensorid in list_of_cold_room_sensors:
+        if sensorid in cold_room_sensors:
             threading.Timer(5 * 60, drop_row, args=(sensorid,)).start()
-        elif sensorid in list_of_normal_room_sensors:
+        elif sensorid in normal_room_sensors:
             threading.Timer(5 * 60, drop_row, args=(sensorid,)).start()
 
 def convertdata(s):
