@@ -298,7 +298,6 @@ def run_sms_sender():
     """Run the SMS sender in a loop."""
     global alarm_queue, sent_alarms
     
-    phone_numbers = load_phone_numbers(NUMBERS_PATH)
     if not phone_numbers:
         logger.warning("No phone numbers loaded for SMS sending")
     
@@ -378,11 +377,7 @@ def setup_hass_mqtt_discovery():
 def main():
     """Main function to start all components."""
     try:
-        # Load configurations
-        global list_of_cold_room_sensors, list_of_normal_room_sensors
-        list_of_cold_room_sensors = load_sensor_list(COLD_SENSORS_PATH)
-        list_of_normal_room_sensors = load_sensor_list(NORMAL_SENSORS_PATH)
-        
+        # Load configurations        
         logger.info(f"Loaded {len(list_of_cold_room_sensors)} cold room sensors")
         logger.info(f"Loaded {len(list_of_normal_room_sensors)} normal room sensors")
         
