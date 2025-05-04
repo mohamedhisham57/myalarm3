@@ -6,7 +6,8 @@ import base64
 import requests
 import logging
 from queue import Queue
-
+import json           
+import traceback          
 # === Logger Setup ===
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
