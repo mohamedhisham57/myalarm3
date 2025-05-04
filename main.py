@@ -185,6 +185,7 @@ class EchoHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
         data = self.recv(8192)
         if data:
+            logger.info(f"Received raw data: {data}")
             convertdata(str(data))
 
 class EchoServer(asyncore.dispatcher):
