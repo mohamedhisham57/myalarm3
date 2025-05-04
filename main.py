@@ -19,15 +19,30 @@ except Exception as e:
     logger.error(traceback.format_exc())
     config = {}  # Provide a default empty config to prevent further errors
 
+# Extract configuration with error handling and logging
+broker_address = config.get('mqtt_broker', '')
+mqtt_username = config.get('mqtt_user', '')
+mqtt_password = config.get('mqtt_pass', '')
+sms_uri = config.get('sms_uri', '')
+sms_credentials = config.get('sms_credentials', '')
+alarm_send_delay_minutes = config.get('alarm_delay_minutes', 5)
+alarm_send_delay = alarm_send_delay_minutes * 60
 
-# === Hardcoded Configuration ===
-phone_numbers = ["+201140214856", "+201098765432"]
-cold_room_sensors = ["62210229", "62230005"]
-normal_room_sensors = ["87654321", "62232132"]
-
-
-sms_uri = "http://192.168.0.100:3000/api/v1/sms/outbox"
-sms_credentials = "apiuser:pleasechangeme"
+# Parsing configuration with detailed logging
+try:
+    cold_room_sensors = [s.strip() for s in config.get('cold_room_sensors', '').split(',') if s.strip()]
+    normal_room_sensors = [s.strip() for s in config.get('normal_room_sensors', '').split(',') if s.strip()]
+    phone_numbers = [s.strip() for s in config.get('phone_numbers', '').split(',') if s.strip()]
+    
+    logger.info(f"Configured Cold Room Sensors: {cold_room_sensors}")
+    logger.info(f"Configured Normal Room Sensors: {normal_room_sensors}")
+    logger.info(f"Configured Phone Numbers: {phone_numbers}")
+except Exception as e:
+    logger.error(f"Error parsing sensor and phone number configuration: {e}")
+    logger.error(traceback.format_exc())
+    cold_room_sensors = []
+    normal_room_sensors = []
+    phone_numbers = []
 
 
 # === Queue for alarms ===
