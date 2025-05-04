@@ -1,6 +1,5 @@
 import asyncore
 import base64
-import collections
 import logging
 import os
 import queue
@@ -19,13 +18,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-COLD_SENSORS_PATH = "/config/cold_sensor_id.txt"
-NORMAL_SENSORS_PATH = "/config/normal_sensor_id.txt"
-NUMBERS_PATH = "/config/phone_numbers.txt"
 MQTT_BROKER = "core-mosquitto"  # Home Assistant's MQTT broker service name
-MQTT_USERNAME = "mqtt-user"
+MQTT_USERNAME = "skarpt"
 MQTT_PASSWORD = "Skarpt"
-SMS_API_URL = "http://localhost:3000/api/v1/sms/outbox"
+SMS_API_URL = "http://192.168.0.100:3000/api/v1/sms/outbox"
 SMS_API_CREDENTIALS = "apiuser:pleasechangeme"
 TCP_SERVER_HOST = ''
 TCP_SERVER_PORT = 5060
@@ -35,6 +31,15 @@ SMS_DELAY = 40  # seconds between SMS sends
 COLD_ROOM_TIMEOUT = 30  # minutes
 NORMAL_ROOM_TIMEOUT = 15  # minutes
 
+# Hardcoded values
+# List of sensor IDs for cold rooms
+list_of_cold_room_sensors = ['62232132']
+
+# List of sensor IDs for normal rooms
+list_of_normal_room_sensors = ['62232133', '62232134']
+
+# List of phone numbers to send SMS alerts to
+phone_numbers = ['01140214856']
 # Global variables
 alarm_queue = queue.Queue()  # Queue to store alarms
 sent_alarms = set()  # Set to track which alarms have been sent
