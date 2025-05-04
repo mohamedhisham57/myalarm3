@@ -100,7 +100,7 @@ def send_http_request(credentials, url, method, request_body, timeout):
 def send_sms(message, number):
     import base64, requests
     tp_link_credentials = "apiuser:pleasechangeme"  # <- Hardcoded credentials (should be moved to config)
-    sms_uri = "http://localhost:3000/api/v1/sms/outbox"  # <- SMS API endpoint (local API bridge)
+    sms_uri = "http://192.168.0.100:3000/api/v1/sms/outbox"  # <- SMS API endpoint (local API bridge)
     
     body = {
         "to": number,
