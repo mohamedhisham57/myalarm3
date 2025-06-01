@@ -53,7 +53,7 @@ def send_mqtt(topic):
         client = mqtt.Client("P1")
         client.username_pw_set(username=mqtt_username, password=mqtt_password)
         client.connect(broker_address)
-        client.publish(topic, "1")
+        client.publish(str(topic),"1")
         client.disconnect()
         logger.info("MQTT message sent successfully")
     except Exception as e:
@@ -111,7 +111,7 @@ def siren_worker():
         for number in phone_numbers:
             send_sms(message, number)
         mqtt_topic = f"alarm/{alarm_type}/{sensor_id}"
-        send_mqtt(mqtt_topic)
+        send_mqtt("cold room")
         last_sent_time[sensor_id] = now
         alarm_queue.task_done()
 
