@@ -8,7 +8,8 @@ import logging
 from queue import Queue
 import json           
 import traceback 
-from paho.mqtt.client import Client
+import paho.mqtt.client as mqtt
+from paho.mqtt.client import CallbackAPIVersion
 
 # === Logger Setup ===
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -49,9 +50,13 @@ except Exception as e:
 
 def send_mqtt(topic):
     try:
+        client = mqtt.Client(
+            client_id="P1",
+            protocol=mqtt.MQTTv311,
+            callback_api_version=CallbackAPIVersion.V5
+        )
+
         logger.info(f"Sending MQTT message to topic: {topic}")
-        from paho.mqtt.client import MQTTv311
-        client = Client(client_id="P1", protocol=MQTTv311, callback_api_version=5)
         client.username_pw_set(username=mqtt_username, password=mqtt_password)
         client.connect(broker_address)
         client.publish(str(topic),"1")
