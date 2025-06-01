@@ -53,7 +53,7 @@ def send_mqtt(topic):
         client = mqtt.Client(
             client_id="P1",
             protocol=mqtt.MQTTv311,
-            callback_api_version=CallbackAPIVersion.V5
+            callback_api_version=5  
         )
 
         logger.info(f"Sending MQTT message to topic: {topic}")
