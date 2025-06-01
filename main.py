@@ -7,7 +7,9 @@ import requests
 import logging
 from queue import Queue
 import json           
-import traceback          
+import traceback 
+import paho.mqtt.client as mqtt
+
 # === Logger Setup ===
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -45,6 +47,17 @@ except Exception as e:
     normal_room_sensors = []
     phone_numbers = []
 
+def send_mqtt(topic):
+    try:
+        logger.info(f"Sending MQTT message to topic: {topic}")
+        client = mqtt.Client("P1")
+        client.username_pw_set(username=mqtt_username, password=mqtt_password)
+        client.connect(broker_address)
+        client.publish(topic, "1")
+        client.disconnect()
+        logger.info("MQTT message sent successfully")
+    except Exception as e:
+        logger.error(f"Failed to send MQTT message: {e}")
 
 # === Queue for alarms ===
 alarm_queue = Queue()
@@ -78,7 +91,7 @@ def send_sms(message, number):
 # === Siren Worker ===
 def siren_worker():
     last_sent_time = {}
-    delay = 300  # 5 minutes
+    delay = alarm_send_delay    # 5 minutes
 
     while True:
         sensor_id, temp, alarm_type, timestamp = alarm_queue.get()
@@ -97,7 +110,8 @@ def siren_worker():
         )
         for number in phone_numbers:
             send_sms(message, number)
-
+        mqtt_topic = f"alarm/{alarm_type}/{sensor_id}"
+        send_mqtt(mqtt_topic)
         last_sent_time[sensor_id] = now
         alarm_queue.task_done()
 
