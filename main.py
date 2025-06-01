@@ -50,7 +50,8 @@ except Exception as e:
 def send_mqtt(topic):
     try:
         logger.info(f"Sending MQTT message to topic: {topic}")
-        client = Client(client_id="P1", protocol=mqtt.MQTTv311, callback_api_version=5)
+        from paho.mqtt.client import MQTTv311
+        client = Client(client_id="P1", protocol=MQTTv311, callback_api_version=5)
         client.username_pw_set(username=mqtt_username, password=mqtt_password)
         client.connect(broker_address)
         client.publish(str(topic),"1")
