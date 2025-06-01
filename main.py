@@ -52,14 +52,16 @@ def send_mqtt(topic):
     try:
         client = mqtt.Client(
             client_id="P1",
-            protocol=mqtt.MQTTv311,
-            callback_api_version=5  
+            protocol=mqtt.MQTTv311
         )
 
         logger.info(f"Sending MQTT message to topic: {topic}")
-        client.username_pw_set(username=mqtt_username, password=mqtt_password)
+        client.username_pw_set(mqtt_username, mqtt_password)
         client.connect(broker_address)
-        client.publish(str(topic),"1")
+        client.loop_start()
+        client.publish(topic, "1")
+        time.sleep(1)  # give time to complete the publish
+        client.loop_stop()
         client.disconnect()
         logger.info("MQTT message sent successfully")
     except Exception as e:
