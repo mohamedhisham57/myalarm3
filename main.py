@@ -29,8 +29,13 @@ mqtt_username = config.get('mqtt_user', '')
 mqtt_password = config.get('mqtt_pass', '')
 sms_uri = config.get('sms_uri', '')
 sms_credentials = config.get('sms_credentials', '')
-alarm_send_delay_minutes = config.get('alarm_delay_minutes', 5)
-alarm_send_delay = alarm_send_delay_minutes * 60
+cold_alarm_send_delay_minutes = config.get('cold_room_delay_minutes', 5)
+normal_alarm_send_delay_minutes = config.get('normal_room_delay_minutes', 5)
+
+cold_alarm_send_delay = cold_alarm_send_delay_minutes * 60
+normal_alarm_send_delay = normal_alarm_send_delay_minutes * 60
+
+
 
 # Parsing configuration with detailed logging
 try:
@@ -99,29 +104,40 @@ def send_sms(message, number):
 # === Siren Worker ===
 def siren_worker():
     last_sent_time = {}
-    delay = alarm_send_delay    # 5 minutes
 
     while True:
         sensor_id, temp, alarm_type, timestamp = alarm_queue.get()
         now = time.time()
         print("siren_worker is running...")
+
+        if sensor_id in cold_room_sensors:
+            delay = cold_alarm_send_delay
+        elif sensor_id in normal_room_sensors:
+            delay = normal_alarm_send_delay
+        else:
+            logger.warning(f"Unknown sensor type for sensor: {sensor_id}")
+            alarm_queue.task_done()
+            continue
+
         if now - last_sent_time.get(sensor_id, 0) < delay:
             logger.info(f"Cooldown active for {sensor_id}")
             alarm_queue.task_done()
             continue
+
         message = (
-            f"Alarm Alert!\n"
-            f"Zone: {alarm_type}\n"
-            f"Sensor: {sensor_id}\n"
-            f"Temp: {temp}\n"
+            f'There is Alarm \n'
+            f"Alarm Case: {alarm_type}\n"
+            f"Sensor Id: {sensor_id}\n"
+            f"Value: {temp}\n"
             f"Time: {timestamp}"
         )
         for number in phone_numbers:
             send_sms(message, number)
-        mqtt_topic = f"alarm/{alarm_type}/{sensor_id}"
-        send_mqtt("cold room")
+
+        send_mqtt(alarm_type)  # either "cold_room" or "normal_room"
         last_sent_time[sensor_id] = now
         alarm_queue.task_done()
+
 
 # === Data Handler ===
 def convertdata(s):
@@ -135,9 +151,9 @@ def convertdata(s):
         timestamp = outlist[5].split(',')[3].replace("]]", "").replace("[[", "").split("\"")[3]
 
         if sensorid in cold_room_sensors:
-            alarm_type = "cold_room"
+            alarm_type = "cold room"
         elif sensorid in normal_room_sensors:
-            alarm_type = "normal_room"
+            alarm_type = "normal room"
         else:
             logger.warning(f"Unknown sensor: {sensorid}")
             return
