@@ -133,6 +133,8 @@ def siren_worker():
         )
         for number in phone_numbers:
             send_sms(message, number)
+            time.sleep(40)
+
 
         send_mqtt(alarm_type)  # either "cold_room" or "normal_room"
         last_sent_time[sensor_id] = now
