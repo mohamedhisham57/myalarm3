@@ -10,6 +10,8 @@ import json
 import traceback 
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import CallbackAPIVersion
+from queue import Empty
+
 
 # === Logger Setup ===
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -112,7 +114,25 @@ def send_sms(message, number):
         logger.error(traceback.format_exc())
         return False
 
-# === Siren Worker ===
+from queue import Empty
+
+def remove_queued_duplicates(sensor_id):
+    """Remove all queued alarms for the same sensor."""
+    try:
+        temp_queue = Queue()
+        while True:
+            item = alarm_queue.get_nowait()
+            if item[0] != sensor_id:
+                temp_queue.put(item)
+            else:
+                logger.info(f"Duplicate alarm from {sensor_id} removed from queue during cooldown.")
+            alarm_queue.task_done()
+    except Empty:
+        pass
+    finally:
+        while not temp_queue.empty():
+            alarm_queue.put(temp_queue.get())
+
 def siren_worker():
     last_sent_time = {}
 
@@ -121,6 +141,7 @@ def siren_worker():
         now = time.time()
         print("siren_worker is running...")
 
+        # Determine which room type
         if sensor_id in cold_room_sensors:
             delay = cold_alarm_send_delay
         elif sensor_id in normal_room_sensors:
@@ -130,11 +151,13 @@ def siren_worker():
             alarm_queue.task_done()
             continue
 
+        # Cooldown check
         if now - last_sent_time.get(sensor_id, 0) < delay:
             logger.info(f"Cooldown active for {sensor_id}")
             alarm_queue.task_done()
             continue
 
+        # Build the message
         message = (
             f'There is Alarm \n'
             f"Alarm Case: {alarm_type}\n"
@@ -142,15 +165,23 @@ def siren_worker():
             f"Value: {temp}\n"
             f"Time: {timestamp}"
         )
+
+        # Send SMS to all phone numbers
         for number in phone_numbers:
             send_sms(message, number)
-            time.sleep(40)
+            time.sleep(40)  # To avoid overwhelming the router/API
 
+        # Send MQTT trigger
+        send_mqtt(alarm_type)
 
-        send_mqtt(alarm_type)  # either "cold_room" or "normal_room"
+        # Update last sent time
         last_sent_time[sensor_id] = now
-        alarm_queue.task_done()
 
+        # Remove any duplicate alarms already in queue for this sensor
+        remove_queued_duplicates(sensor_id)
+
+        # Mark this queue item as processed
+        alarm_queue.task_done()
 
 # === Data Handler ===
 def convertdata(s):
