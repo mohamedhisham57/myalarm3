@@ -94,12 +94,23 @@ def send_http_request(credentials, url, method, request_body, timeout):
         return None
 
 def send_sms(message, number):
-    body = {"to": number, "content": message}
-    result = send_http_request(sms_credentials, sms_uri, 'POST', body, 100)
-    if result:
-        logger.info(f"SMS sent to {number}")
-    else:
-        logger.warning(f"SMS failed to {number}")
+    body = {
+        "to": number,
+        "content": message
+    }
+
+    try:
+        result = send_http_request(sms_credentials, sms_uri, 'POST', body, 100)
+        if result:
+            logger.info(f"SMS sent successfully to {number}")
+            return True
+        else:
+            logger.warning(f"Failed to send SMS to {number} — No response or bad status code.")
+            return False
+    except Exception as e:
+        logger.error(f"Exception while sending SMS to {number}: {e}")
+        logger.error(traceback.format_exc())
+        return False
 
 # === Siren Worker ===
 def siren_worker():
