@@ -95,7 +95,7 @@ def send_http_request(credentials, url, method, request_body, timeout):
 
 def send_sms(message, number):
     body = {"to": number, "content": message}
-    result = send_http_request(sms_credentials, sms_uri, 'POST', body, 10)
+    result = send_http_request(sms_credentials, sms_uri, 'POST', body, 100)
     if result:
         logger.info(f"SMS sent to {number}")
     else:
