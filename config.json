@@ -1,25 +1,13 @@
 {
   "name": "myalarmHandler",
   "version": "1.0",
-  "slug": "myalarmHandler",
+  "slug": "myalarmhandler",
   "description": "Handles alarms and sends SMS via MQTT and HTTP",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "application",
   "boot": "auto",
   "host_network": true,
   "hassio_api": true,
-  "options": {
-    "mqtt_broker": "192.168.1.101",
-    "mqtt_user": "mqtt-user",
-    "mqtt_pass": "Skarpt",
-    "sms_uri": "http://192.168.1.101:3000/api/v1/sms/outbox",
-    "sms_credentials": "apiuser:pleasechangeme",
-    "cold_room_delay_minutes": 1,
-    "normal_room_delay_minutes": 2,
-    "cold_room_sensors": "62210229,62240894,06240840",
-    "normal_room_sensors": "44443333,66665555,88887777",
-    "phone_numbers": "01140214856,01116072004,01123008561"
-  },
   "schema": {
     "mqtt_broker": "str",
     "mqtt_user": "str",
