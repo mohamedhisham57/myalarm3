@@ -1,7 +1,7 @@
 {
   "name": "myalarmHandler",
   "version": "1.0",
-  "slug": "localaddonbackup",
+  "slug": "myalarmHandler",
   "description": "Handles alarms and sends SMS via MQTT and HTTP",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "application",
